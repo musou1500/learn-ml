@@ -1,5 +1,4 @@
-const { deepStrictEqual, throws } = require('assert');
-const math = require('mathjs');
+import math from 'mathjs';
 
 const getRandIdx = examples =>
   Math.floor(Math.random() * examples.length);
@@ -7,7 +6,7 @@ const getRandIdx = examples =>
 const isCorrect = (s, ans, idx) =>
   s > 0 && ans[idx] > 0 || s < 0 && ans[idx] < 0;
 
-const learn = (examples, ans) => {
+export const learn = (examples, ans) => {
   if (examples.length <= 0) {
     throw new RangeError('give >1 examples');
   }
@@ -32,15 +31,16 @@ const learn = (examples, ans) => {
       run++;
 
       // 正しく分類できる数
-      num = examples
-        .map(e => math.multiply(weight, example))
-        .map(s => isCorrect(s, ans, randIdx) ? 1 : 0)
-        .reduce((prev, cur) => prev + cur, 0);
-      if (num > pocket.num) {
-        pocket.num = num;
+      count = examples
+        .map(e => math.multiply(weight, e))
+        .map((s, i) => isCorrect(s, ans, i) ? 1 : 0)
+        .reduce((prev, cur) => prev + cur);
+
+      if (count > pocket.count) {
+        pocket.count = count;
         pocket.run = run;
         pocket.weight = weight;
-        if (num === examples.length) {
+        if (count === examples.length) {
           break;
         }
       }
@@ -50,22 +50,5 @@ const learn = (examples, ans) => {
     }
   }
 
-  return weight;
+  return pocket.weight;
 };
-
-const testLearn = () => {
-  const examples = [
-    [1, 1, 1],
-    [1, 1, -1],
-    [1, -1, 1],
-    [1, -1, -1],
-  ];
-
-  const ans = [1, -1, -1, -1];
-  const weight = learn(examples, ans);
-  deepStrictEqual(weight, [-1, 1, 1]);
-
-  throws(() => learn([], []));
-};
-
-testLearn();
